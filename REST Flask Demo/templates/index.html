@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Ranking Flask Test</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <script>
+      async function fetchMovies() {
+        const response = await fetch("/movies");
+        const data = await response.json();
+        const moviesContainer = document.getElementById("movies");
+        moviesContainer.innerHTML = "";
+        data.data.forEach((movie) => {
+          const movieElement = document.createElement("div");
+          movieElement.innerHTML = `<h3>${movie.title} (Rank: ${movie.rank})</h3>
+                    <button onclick="updateRank(${movie.id})">Update Rank</button>
+                    <button onclick="deleteMovie(${movie.id})">Delete</button>`;
+          moviesContainer.appendChild(movieElement);
+        });
+      }
+
+      async function addMovie() {
+        const title = document.getElementById("title").value;
+        const rank = document.getElementById("rank").value;
+        await fetch("/movies", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, rank: parseInt(rank) }),
+        });
+        fetchMovies();
+      }
+
+      async function updateRank(id) {
+        const newRank = prompt("Enter new rank:");
+        if (newRank) {
+          await fetch(`/movies/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ rank: parseInt(newRank) }),
+          });
+          fetchMovies();
+        }
+      }
+
+      async function deleteMovie(id) {
+        await fetch(`/movies/${id}`, {
+          method: "DELETE",
+        });
+        fetchMovies();
+      }
+    </script>
+  </head>
+  <body onload="fetchMovies()">
+    <h1>Movie Ranking Flask Test</h1>
+    <div>
+      <input type="text" id="title" placeholder="Movie Title" />
+      <input type="number" id="rank" placeholder="Rank" min="1" max="10" />
+      <button onclick="addMovie()">Add a Movie</button>
+    </div>
+    <div id="movies"></div>
+  </body>
+</html>
